@@ -1,8 +1,8 @@
 # GROMOS Parser
-[NOMAD Laboratory CoE](http://nomad-coe.eu) parser for [GROMOS]()
+[NOMAD Laboratory CoE](http://nomad-coe.eu) parser for [GROMOS](http://www.gromos.net)
 ## Version 0.0.1
 
-This is the parser for GROMOS in [GROMOS]().
+This is the parser for GROMOS in [GROMOS](http://www.gromos.net).
 The official version lives at:
 
     git@gitlab.mpcdf.mpg.de:nomad-lab/parser-gromos.git
