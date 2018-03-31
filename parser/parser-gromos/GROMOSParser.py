@@ -14,7 +14,6 @@ from GROMOSDictionary import get_updateDictionary, set_Dictionaries
 from GROMOSCommon import PARSERNAME, PROGRAMNAME, PARSERVERSION, PARSERTAG, LOGGER
 from GROMOSCommon import PARSER_INFO_DEFAULT, META_INFO_PATH, set_excludeList, set_includeList
 from nomadcore.md_data_access import MDDataAccess as MDDA
-#from nomadcore.md_data_access.MDDataAccess import is_file_binary, is_binary_string
 import argparse
 import logging
 import os
