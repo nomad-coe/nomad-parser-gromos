@@ -1896,14 +1896,14 @@ class GROMOSParser(SmartParser.ParserBase):
                            ' '.join(p.lastMatch[
                                PARSERTAG+"_mdin_finline"
                                ].replace('\n', ' ').strip().split()))),
-                    SM(name='logruninfo', 
-                        startReStr=r"\s*build\s*date\s*:\s*"
-                                   "(?P<"+PARSERTAG+"_mdin_finline>"
-                                   "[a-zA-Z0-9/:. ]+)\s*",
-                       adHoc=lambda p: p.backend.addValue( 
-                           "time_run_date_start", datetime.datetime.strptime(
-                               p.lastMatch[PARSERTAG+"_mdin_finline"].strip(), 
-                               '%a %b %d %H:%M:%S %Z %Y').timestamp())),
+                    #SM(name='logruninfo', 
+                    #    startReStr=r"\s*build\s*date\s*:\s*"
+                    #               "(?P<"+PARSERTAG+"_mdin_finline>"
+                    #               "[a-zA-Z0-9/:. ]+)\s*",
+                    #   adHoc=lambda p: p.backend.addValue( 
+                    #       "time_run_date_start", datetime.datetime.strptime(
+                    #           p.lastMatch[PARSERTAG+"_mdin_finline"].strip(), 
+                    #           '%a %b %d %H:%M:%S %Z %Y').timestamp())),
                     SM(startReStr=r"\s*Debugging\s*is\s*(?:disabled|enabled)\s*"),
                     SM(name='license', 
                        startReStr=r"\s*Gruppe\s*fuer\s*",
@@ -1967,31 +1967,31 @@ class GROMOSParser(SmartParser.ParserBase):
                            #onQuitRunFunction=lambda p: [sys.stdout.write("Line %d: %s" % (i, line)) for i,line in enumerate(self.recordList)])),
                     SM(name='CPUtime',
                        startReStr=r"\s*Overall\s*time\s*used:\s*(?P<time_run_cpu1_end>[0-9:.eEdD]+)"),
-                    SM(name='Walldate',
-                       startReStr=r"^\(initialisation\s*took\s*",
-                       coverageIgnore=True, 
-                       adHoc=lambda p: 
-                       self.adHoc_read_store_text_stop_parsing(p, 
-                           stopOnMatchStr=r"^[MTWFS]+.*[0-9]+$",
-                           quitOnMatchStr=r"^[MTWFS]+.*[0-9]+$",
-                           metaNameStart=PARSERTAG+"_", 
-                           metaNameStore=PARSERTAG+"_mdin_finline", 
-                           matchNameList=None,
-                           matchNameDict=None,
-                           onlyCaseSensitive=True,
-                           stopOnFirstLine=False,
-                           storeFirstLine=True,
-                           storeStopQuitLine=True,
-                           onQuitRunFunction=lambda p: p.backend.addValue( 
-                               "time_run_wall_end", 
-                               datetime.datetime.strptime(
-                               ' '.join(p.lastMatch[
-                                   PARSERTAG+"_mdin_finline"
-                                   ].replace('\n', ' ').strip().split()[-5:]),
-                               '%a %b %d %H:%M:%S %Y').timestamp()
-                               )
-                           )
-                       ),
+                    #SM(name='Walldate',
+                    #   startReStr=r"^\(initialisation\s*took\s*",
+                    #   coverageIgnore=True, 
+                    #   adHoc=lambda p: 
+                    #   self.adHoc_read_store_text_stop_parsing(p, 
+                    #       stopOnMatchStr=r"^[MTWFS]+.*[0-9]+$",
+                    #       quitOnMatchStr=r"^[MTWFS]+.*[0-9]+$",
+                    #       metaNameStart=PARSERTAG+"_", 
+                    #       metaNameStore=PARSERTAG+"_mdin_finline", 
+                    #       matchNameList=None,
+                    #       matchNameDict=None,
+                    #       onlyCaseSensitive=True,
+                    #       stopOnFirstLine=False,
+                    #       storeFirstLine=True,
+                    #       storeStopQuitLine=True,
+                    #       onQuitRunFunction=lambda p: p.backend.addValue( 
+                    #           "time_run_wall_end", 
+                    #           datetime.datetime.strptime(
+                    #           ' '.join(p.lastMatch[
+                    #               PARSERTAG+"_mdin_finline"
+                    #               ].replace('\n', ' ').strip().split()[-5:]),
+                    #           '%a %b %d %H:%M:%S %Y').timestamp()
+                    #           )
+                    #       )
+                    #   ),
                     SM(name='end_run', 
                        startReStr=r"\s*MD\+\+\s*finished\s*successfully\s*",
                        adHoc=lambda p: p.backend.addValue("run_clean_end",True)),
