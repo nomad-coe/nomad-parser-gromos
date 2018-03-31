@@ -728,11 +728,11 @@ class GROMOSParser(SmartParser.ParserBase):
                 # need to transpose array since its shape is [number_of_atoms,3] in the metadata
 
             if self.topology is not None:
-                atom_labels = self.topoDict["atom_element_list"]
-                numatoms = len(atom_labels)
-                self.numatoms
-                SloppyBackend.addArrayValues('atom_labels', np.asarray(atom_labels))
-                pass
+                if "atom_element_list" in self.topoDict:
+                    atom_labels = self.topoDict["atom_element_list"]
+                    numatoms = len(atom_labels)
+                    self.numatoms
+                    SloppyBackend.addArrayValues('atom_labels', np.asarray(atom_labels))
         else:
             if unit_vectors is not None:
                 unit_cell = np.asarray(self.metaStorage.convertUnits(
