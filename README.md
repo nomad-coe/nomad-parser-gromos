@@ -1,6 +1,6 @@
 # GROMOS Parser
 [NOMAD Laboratory CoE](http://nomad-coe.eu) parser for [GROMOS](http://www.gromos.net)
-## Version 0.0.1
+## Version 0.0.2
 
 This is the parser for GROMOS in [GROMOS](http://www.gromos.net).
 The official version lives at:
