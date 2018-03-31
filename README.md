@@ -2,7 +2,7 @@
 [NOMAD Laboratory CoE](http://nomad-coe.eu) parser for [GROMOS](http://www.gromos.net)
 ## Version 0.0.2
 
-This is the parser for GROMOS in [GROMOS](http://www.gromos.net).
+This is the parser for GROMOS and MD++ code in [GROMOS](http://www.gromos.net).
 The official version lives at:
 
     git clone git@gitlab.mpcdf.mpg.de:nomad-lab/parser-gromos.git
