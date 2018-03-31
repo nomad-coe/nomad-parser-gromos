@@ -5,7 +5,7 @@
 This is the parser for GROMOS in [GROMOS](http://www.gromos.net).
 The official version lives at:
 
-    git@gitlab.mpcdf.mpg.de:nomad-lab/parser-gromos.git
+    git clone git@gitlab.mpcdf.mpg.de:nomad-lab/parser-gromos.git
 
 You can browse it at:
 
