@@ -269,8 +269,23 @@ class GROMOSParser(SmartParser.ParserBase):
         #self.initialize_values()
         self.secRunOpen = False
         self.metaStorage.reset({'startSection' : [['section_run']]})
+        self.metaStorageRestrict.reset({'startSection' : [['section_restricted_uri']]})
         self.reset_values()
 
+    def parameter_file_name(self, filedict, itemdict):
+        """ Function to generate data for parameter files list
+        """
+        working_dir_name = os.path.dirname(os.path.normpath(os.path.abspath(self.fName)))
+        parmmeta = isMetaStrInDict("structure",self.fileDict)
+        filename = []
+        if parmmeta is not None:
+            if self.fileDict[parmmeta].value is not None:
+                fname = self.fileDict[parmmeta].value
+                filename.append(fname.replace(working_dir_name, '.'+os.path.sep))
+        if filename:
+            return False, filename, itemdict
+        else:
+            return False, None, itemdict
     def gromos_input_output_files(self, backend, gIndex, section):
         """Called with onClose_x_gromos_section_control_parameters to setup
             topology and trajectory inputs/outputs
@@ -381,7 +396,7 @@ class GROMOSParser(SmartParser.ParserBase):
             trajDone = True
             self.newTraj = True
 
-        #if atLeastOneFileExist:
+        if atLeastOneFileExist:
         #    updateDict = {
         #            'startSection'   : [[PARSERTAG+'_section_input_output_files']],
         #            'dictionary'     : self.fileDict
@@ -390,6 +405,17 @@ class GROMOSParser(SmartParser.ParserBase):
         #    self.metaStorage.updateBackend(backend.superBackend,
         #            startsection=[PARSERTAG+'_section_input_output_files'],
         #            autoopenclose=False)
+            self.secRestrictGIndex = backend.superBackend.openSection("section_restricted_uri")
+            restrictionsDict = get_updateDictionary(self, 'restrictions')
+            updateDict = {
+                    'startSection' : [['section_restricted_uri']],
+                    'dictionary' : restrictionsDict
+                    }
+            self.metaStorageRestrict.update(updateDict)
+            self.metaStorageRestrict.updateBackend(backend.superBackend, 
+                    startsection=['section_restricted_uri'],
+                    autoopenclose=False)
+            backend.superBackend.closeSection("section_restricted_uri", self.secRestrictGIndex)
 
         if self.newTopo:
             if topoDone and atLeastOneFileExist:
@@ -554,6 +580,30 @@ class GROMOSParser(SmartParser.ParserBase):
         #self.stepcontrolDict.update({"follow" : followsteps})
         self.onOpen_section_sampling_method(backend, None, None)
         self.onClose_section_sampling_method(backend, None, None)
+        if self.topology:
+            if self.newTopo:
+                section_file_Dict = {}
+                section_file_Dict.update(self.fileDict)
+                updateDict = {
+                        'startSection' : [[PARSERTAG+'_section_control_parameters']],
+                        'dictionary'   : section_file_Dict
+                        }
+                self.metaStorage.update(updateDict)
+                self.metaStorage.updateBackend(backend.superBackend, 
+                        startsection=[PARSERTAG+'_section_control_parameters'],
+                        autoopenclose=False)
+
+                self.secRestrictGIndex = backend.superBackend.openSection("section_restricted_uri")
+                restrictionsDict = get_updateDictionary(self, 'restrictions')
+                updateDict = {
+                        'startSection' : [['section_restricted_uri']],
+                        'dictionary' : restrictionsDict
+                        }
+                self.metaStorageRestrict.update(updateDict)
+                self.metaStorageRestrict.updateBackend(backend.superBackend, 
+                        startsection=['section_restricted_uri'],
+                        autoopenclose=False)
+                backend.superBackend.closeSection("section_restricted_uri", self.secRestrictGIndex)
 
     def onOpen_section_method(self, backend, gIndex, section):
         # keep track of the latest method section
