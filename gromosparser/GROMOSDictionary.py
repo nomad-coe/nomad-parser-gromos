@@ -1,22 +1,21 @@
 # Copyright 2018-2018 Berk Onat
-# 
+#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 #   Unless required by applicable law or agreed to in writing, software
 #   distributed under the License is distributed on an "AS IS" BASIS,
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import setup_paths
 import numpy as np
-from GROMOSCommon import PARSERNAME, PROGRAMNAME, PARSERTAG
+from .GROMOSCommon import PARSERNAME, PROGRAMNAME, PARSERTAG
 from nomadcore.smart_parser.SmartParserDictionary import metaNameConverter, metaNameConverter_UnderscoreSpaceDash
-from nomadcore.smart_parser.SmartParserDictionary import MetaInfoMap, FileInfoMap, MapDictionary 
+from nomadcore.smart_parser.SmartParserDictionary import MetaInfoMap, FileInfoMap, MapDictionary
 from nomadcore.smart_parser.SmartParserDictionary import getDict_MetaStrInDict, getList_MetaStrInDict, get_unitDict
 import nomadcore.md_data_access.MDDataAccess as MDData
 
@@ -26,7 +25,7 @@ def get_fileListDict():
     Returns:
         the list of defaults file namelists
     """
-    
+
     startpage = {
         'nameTranslate'   : metaNameConverter,
         'metaHeader'      : PARSERTAG,
@@ -37,17 +36,17 @@ def get_fileListDict():
         'fileInterface'   : ["gromosread", "parmed", "mdtraj", "mdanalysis"]
         }
     namelist = {
-        'structure'     : FileInfoMap(startpage, fileFormat=['.gromostop', '.top'], activeInfo=False, 
+        'structure'     : FileInfoMap(startpage, fileFormat=['.gromostop', '.top'], activeInfo=False,
                                       infoPurpose=['topology']),
         'input_coord'   : FileInfoMap(startpage, fileFormat=['.gromoscnf', '.cnf', '.g96'], activeInfo=False,
                                       infoPurpose=['topology', 'inputcoordinates', 'inputvelocities']),
         'output_coord'  : FileInfoMap(startpage, fileFormat=['.gromoscnf', '.cnf', '.g96'], activeInfo=False,
                                       infoPurpose=['outputcoordinates', 'outputvelocities']),
-        'trajectory'    : FileInfoMap(startpage, fileFormat=['.gromostrc', '.trc'], activeInfo=False, 
+        'trajectory'    : FileInfoMap(startpage, fileFormat=['.gromostrc', '.trc'], activeInfo=False,
                                       infoPurpose=['trajectory', 'unitcell']),
         'traj_vel'      : FileInfoMap(startpage, fileFormat=['.gromostrv', '.trv'], activeInfo=False,
                                       infoPurpose=['velocities']),
-        'traj_force'    : FileInfoMap(startpage, fileFormat=['.gromostrf', '.trf'], activeInfo=False, 
+        'traj_force'    : FileInfoMap(startpage, fileFormat=['.gromostrf', '.trf'], activeInfo=False,
                                       infoPurpose=['forces']),
         'output_log'    : FileInfoMap(startpage),
         'control_input' : FileInfoMap(startpage),
@@ -62,11 +61,11 @@ def get_nameListDict(deflist):
 
     matchWith parameters:
         EOL = End of line
-        PL  = Match with previous line 
+        PL  = Match with previous line
         PW  = Previous word
         NW  = Next word (until space, comma) (DEFAULT)
         UD  = until delimeter (can be any string/character)
-        
+
         The text matched inside apostrophe or qoutation is extracted
 
     Returns:
@@ -83,20 +82,20 @@ def get_nameListDict(deflist):
 
     topocntrllist = {
         'MAKE_TOP' : MetaInfoMap(startpage, defaultValue=None, matchWith='EOL',
-            replaceTag='topology_parameter_files', subFunc=lambda x: 
+            replaceTag='topology_parameter_files', subFunc=lambda x:
             ', '.join(' '.join(x.strip().split()).replace(
                 'topology,', '').replace(
                     'using:', '').replace('Force-field code:', ''
                         ).strip().split()[:-1]) if x is not None else None),
         'Force-field code' : MetaInfoMap(startpage, defaultValue=None,
                             subFunc=lambda x: 'Gromos-'+x if x is not None else None),
-        'topology type' : MetaInfoMap(startpage, defaultValue=None, 
+        'topology type' : MetaInfoMap(startpage, defaultValue=None,
                                       activeInfo=False, matchWith='PW'),
-        'using atomistic' : MetaInfoMap(startpage, defaultValue=None, 
-                            replaceTag='topology_parameters', subFunc=lambda x: 
+        'using atomistic' : MetaInfoMap(startpage, defaultValue=None,
+                            replaceTag='topology_parameters', subFunc=lambda x:
                             'Atomistic' if x is not None else None),
         'using coarse-grained' : MetaInfoMap(startpage, defaultValue=None,
-                                 replaceTag='topology_parameters', subFunc=lambda x: 
+                                 replaceTag='topology_parameters', subFunc=lambda x:
                                  'Coarse-Grained' if x is not None else None),
         'RESNAME' : MetaInfoMap(startpage, defaultValue=None, matchWith='EOL',
             subFunc=lambda x: ', '.join(' '.join(x.strip().split()
@@ -104,7 +103,7 @@ def get_nameListDict(deflist):
                     'RESNAME', '').strip().split()
                 ) if x is not None else None),
         'atom types' : MetaInfoMap(startpage, defaultValue=None, matchWith='PW',
-            replaceTag='number_of_atom_types', matchAlso="ATOMTYPENAME", 
+            replaceTag='number_of_atom_types', matchAlso="ATOMTYPENAME",
             subFunc=lambda x: ' '.join(x.strip().split()
                 ).replace('END', '').replace('ATOMTYPENAME', ''
                     ) if x is not None else None),
@@ -116,30 +115,30 @@ def get_nameListDict(deflist):
             matchAlso="LJEXCEPTIONS", subFunc=lambda x: ' '.join(x.strip().split()
                 ).replace('END', '').replace('LJEXCEPTIONS', ''
                     ) if x is not None else None),
-        'bonds from BONDH block added to CONSTRAINT' : MetaInfoMap(startpage, 
+        'bonds from BONDH block added to CONSTRAINT' : MetaInfoMap(startpage,
             defaultValue=None, matchWith='PW', replaceTag='number of H bonds at CONSTRAINT',
             matchAlso="END", subFunc=lambda x: ' '.join(x.strip().split()
                 ).replace('END', '') if x is not None else None),
-        'bonds from BOND block added to CONSTRAINT' : MetaInfoMap(startpage, 
-            defaultValue=None, matchWith='PW', 
-            replaceTag='number of bonds at CONSTRAINT', matchAlso="END"), 
-        'bondangles containing hydrogens' : MetaInfoMap(startpage, 
+        'bonds from BOND block added to CONSTRAINT' : MetaInfoMap(startpage,
+            defaultValue=None, matchWith='PW',
+            replaceTag='number of bonds at CONSTRAINT', matchAlso="END"),
+        'bondangles containing hydrogens' : MetaInfoMap(startpage,
             defaultValue=None, matchAlso="BONDANGLE"),
-        'bondangles not containing hydrogens' : MetaInfoMap(startpage, 
+        'bondangles not containing hydrogens' : MetaInfoMap(startpage,
             defaultValue=None, matchAlso="BONDANGLE"),
-        'improper dihedrals not containing hydrogens' : MetaInfoMap(startpage, 
+        'improper dihedrals not containing hydrogens' : MetaInfoMap(startpage,
             defaultValue=None, matchAlso="IMPDIHEDRAL"),
-        'improper dihedrals containing hydrogens' : MetaInfoMap(startpage, 
+        'improper dihedrals containing hydrogens' : MetaInfoMap(startpage,
             defaultValue=None, matchAlso="IMPDIHEDRAL"),
-        'propdihedrals not containing hydrogens' : MetaInfoMap(startpage, 
+        'propdihedrals not containing hydrogens' : MetaInfoMap(startpage,
             defaultValue=None, matchAlso="DIHEDRAL",
             replaceTag='dihedrals not containing hydrogens'),
-        'propdihedrals containing hydrogens' : MetaInfoMap(startpage, 
+        'propdihedrals containing hydrogens' : MetaInfoMap(startpage,
             defaultValue=None, matchAlso="DIHEDRAL",
             replaceTag='dihedrals containing hydrogens'),
-        'crossdihedrals not containing hydrogens' : MetaInfoMap(startpage, 
+        'crossdihedrals not containing hydrogens' : MetaInfoMap(startpage,
             defaultValue=None, matchAlso="CROSSDIHEDRAL"),
-        'crossdihedrals containing hydrogens' : MetaInfoMap(startpage, 
+        'crossdihedrals containing hydrogens' : MetaInfoMap(startpage,
             defaultValue=None, matchAlso="CROSSDIHEDRAL"),
         'atoms' : MetaInfoMap(startpage, defaultValue=None, matchAlso="SOLVENT",
                 replaceTag='number of solvent atoms'),
@@ -157,16 +156,16 @@ def get_nameListDict(deflist):
         }
 
     ffcntrllist = {
-        'bond angle \(cosine\) interaction' : MetaInfoMap(startpage, defaultValue=None, 
+        'bond angle \(cosine\) interaction' : MetaInfoMap(startpage, defaultValue=None,
             matchAlso="FORCEFIELD", replaceTag='bond angle interaction in force field',
             subFunc=lambda x: 'Yes' if x is not None else None),
-        'improper-dihedral-interaction' : MetaInfoMap(startpage, defaultValue=None, 
+        'improper-dihedral-interaction' : MetaInfoMap(startpage, defaultValue=None,
             matchAlso="FORCEFIELD", replaceTag='improper dihedral interaction in force field',
             subFunc=lambda x: 'Yes' if x is not None else None),
-        'propdihedral_interaction' : MetaInfoMap(startpage, defaultValue=None, 
+        'propdihedral_interaction' : MetaInfoMap(startpage, defaultValue=None,
             matchAlso="FORCEFIELD", replaceTag='dihedral interaction in force field',
             subFunc=lambda x: 'Yes' if x is not None else None),
-        'crossdihedral interaction' : MetaInfoMap(startpage, defaultValue=None, 
+        'crossdihedral interaction' : MetaInfoMap(startpage, defaultValue=None,
             matchAlso="FORCEFIELD", replaceTag='cross dihedral interaction in force field',
             subFunc=lambda x: 'Yes' if x is not None else None),
         'nonbonded force' : MetaInfoMap(startpage, defaultValue=None, matchWith='EOL',
@@ -174,10 +173,10 @@ def get_nameListDict(deflist):
             subFunc=lambda x: ', '.join(x.strip().split()) if x is not None else None),
         'Pairlist Algorithm'  : MetaInfoMap(startpage, defaultValue=None, matchWith='EOL',
             subFunc=lambda x: ' '.join(x.strip().split()) if x is not None else None),
-        'boundary'  : MetaInfoMap(startpage, defaultValue=None, matchWith='EOL', 
+        'boundary'  : MetaInfoMap(startpage, defaultValue=None, matchWith='EOL',
             replaceTag='periodic boundary conditions',
             subFunc=lambda x: ' '.join(x.strip().split()) if x is not None else None),
-        'virial'  : MetaInfoMap(startpage, defaultValue=None, matchWith='EOL', 
+        'virial'  : MetaInfoMap(startpage, defaultValue=None, matchWith='EOL',
             subFunc=lambda x: ' '.join(x.strip().split()) if x is not None else None),
         'cutoff '  : MetaInfoMap(startpage, defaultValue=None, matchAlso='pairlist creation',
                                   replaceTag='cutoff type'),
@@ -432,7 +431,7 @@ def set_Dictionaries(self):
     self.stepcontrolDict = {
             'logsteps'       : None,
             'nextlogsteps'   : None,
-            'trajsteps'      : None, 
+            'trajsteps'      : None,
             'velsteps'       : None,
             'forcesteps'     : None,
             'steps'          : None,
@@ -450,12 +449,12 @@ def set_Dictionaries(self):
             'mddata' : self.mddataDict,
             'extra'  : self.extraDict,
             }
-    self.sectionDict = { 
-            'section' : { 
-                "metaNameTag"      : ['input_output_files', 
-                                      'control_parameters'], 
-                "listTypStr"       : 'type_section', 
-                "repeatingSection" : False, 
+    self.sectionDict = {
+            'section' : {
+                "metaNameTag"      : ['input_output_files',
+                                      'control_parameters'],
+                "listTypStr"       : 'type_section',
+                "repeatingSection" : False,
                 "supraNames"       : ["section_run"]
                 }
             }
@@ -477,7 +476,7 @@ def get_updateDictionary(self, defname):
             if(st is not None and isinstance(st, str)):
                 if("[" in st or "(" in st):
                     val.append(list(storedtext))
-        if val: 
+        if val:
             return False, np.linalg.norm(np.asarray(val)), itemdict
         else:
             return False, itemdict["value"], itemdict
@@ -492,27 +491,27 @@ def get_updateDictionary(self, defname):
     # ---------------------------------------------------------------
     #   Definitions of meta data values for section_sampling_method
     # ---------------------------------------------------------------
-    sampling = { 
+    sampling = {
         #'ensemble_type' : MetaInfoMap(startpage, activeInfo=True,
         #    depends=[
-        #        {'test' : [['DYNA', ' is not None'], 
+        #        {'test' : [['DYNA', ' is not None'],
         #                   ['FIRSTT', ' in [\"tcouple\",'
         #                                  '\"rescale\",'
         #                                  '\"reassign\",'
         #                                  '\"andersen\",'
-        #                                  '\"langevin\"]'], 
+        #                                  '\"langevin\"]'],
         #                   ['barostat', ' in [\"berendsen\",'
-        #                                 '\"langevin\"]']], 
+        #                                 '\"langevin\"]']],
         #         'assign' : 'NPT'},
-        #        {'test' : [['minimization', ' is None'], 
-        #                   ['thermostat', ' in [\"langevin\"]'], 
+        #        {'test' : [['minimization', ' is None'],
+        #                   ['thermostat', ' in [\"langevin\"]'],
         #                   ['thermostat', ' not in [\"tcouple\",'
         #                                  '\"rescale\",'
         #                                  '\"reassign\",'
         #                                  '\"andersen\"]'],
         #                   ['barostat', ' is None']],
         #         'assign' : 'Langevin'},
-        #        {'test' : [['minimization', ' is None'], 
+        #        {'test' : [['minimization', ' is None'],
         #                   ['thermostat', ' in [\"tcouple\",'
         #                                  '\"rescale\",'
         #                                  '\"reassign\",'
@@ -521,16 +520,16 @@ def get_updateDictionary(self, defname):
         #         'assign' : 'NVT'},
         #        {'test' : [['minimization', ' is None'],
         #                   ['thermostat', ' is None'],
-        #                   ['barostat', ' is None']], 
+        #                   ['barostat', ' is None']],
         #         'assign' : 'NVE'},
-        #        {'test' : [['minimization', ' is not None']], 
+        #        {'test' : [['minimization', ' is not None']],
         #         'assign' : 'minimization'},
         #        ],
         #    lookupdict=self.extraDict
         #    ),
-        'sampling_method' : MetaInfoMap(startpage, activeInfo=True, 
+        'sampling_method' : MetaInfoMap(startpage, activeInfo=True,
             depends=[
-                {'test' : [['MINI', ' is not None']], 
+                {'test' : [['MINI', ' is not None']],
                  'assign' : 'geometry_optimization'},
                 {'test' : [['DYNA', ' is not None']],
                  'assign' : 'molecular_dynamics'}
@@ -551,22 +550,22 @@ def get_updateDictionary(self, defname):
         'geometry_optimization_method' : MetaInfoMap(startpage,
             depends=[
                 {'test' : [['MINI',' is not None'],
-                           ['MINI', ' in [\"SD\",\"sd\"]']], 
+                           ['MINI', ' in [\"SD\",\"sd\"]']],
                  'assign' : 'SD'},
                 {'test' : [['MINI',' is not None'],
-                           ['MINI', ' in [\"ABNR\",\"abnr\"]']], 
+                           ['MINI', ' in [\"ABNR\",\"abnr\"]']],
                  'assign' : 'Adopted Basis Newton-Raphson'},
                 {'test' : [['MINI',' is not None'],
-                           ['MINI', ' in [\"NRAP\",\"nrap\"]']], 
+                           ['MINI', ' in [\"NRAP\",\"nrap\"]']],
                  'assign' : 'Newton-Raphson'},
                 {'test' : [['MINI',' is not None'],
-                           ['MINI', ' in [\"POWELL\",\"powell\"]']], 
+                           ['MINI', ' in [\"POWELL\",\"powell\"]']],
                  'assign' : 'Powell'},
                 {'test' : [['MINI',' is not None'],
-                           ['MINI', ' in [\"POWE\",\"powe\"]']], 
+                           ['MINI', ' in [\"POWE\",\"powe\"]']],
                  'assign' : 'Powell'},
                 {'test' : [['MINI',' is not None'],
-                           ['MINI', ' in [\"TNPACK\",\"tnpack\"]']], 
+                           ['MINI', ' in [\"TNPACK\",\"tnpack\"]']],
                  'assign' : 'Truncated Newton Method'},
                 {'test' : [['MINI',' is not None'],
                            ['MINI', ' not in [\"SD\",\"sd\",'
@@ -574,7 +573,7 @@ def get_updateDictionary(self, defname):
                                              '\"NRAP\",\"nrap\",'
                                              '\"POWE\",\"powe\",'
                                              '\"POWELL\",\"powell\",'
-                                             '\"TNPACK\",\"tnpack\"]']], 
+                                             '\"TNPACK\",\"tnpack\"]']],
                  'assign' : 'CG'},
                 ],
             lookupdict=self.cntrlDict,
@@ -583,12 +582,12 @@ def get_updateDictionary(self, defname):
 #       'geometry_optimization_threshold_force' : MetaInfoMap(startpage),
         #'x_gromos_barostat_type' : MetaInfoMap(startpage,
         #    depends=[
-        #        {'test' : [['minimization', ' is None'], 
+        #        {'test' : [['minimization', ' is None'],
         #                   ['barostat', '== \"berendsen\"']],
         #         'assign' : 'Berendsen'},
-        #        {'test' : [['minimization', ' is None'], 
+        #        {'test' : [['minimization', ' is None'],
         #                   ['barostat', '== \"langevin\"']],
-        #         'assign' : 'Nose-Hoover Langevin'} 
+        #         'assign' : 'Nose-Hoover Langevin'}
         #        ],
         #    lookupdict=self.extraDict,
         #    #autoSections=True,
@@ -598,7 +597,7 @@ def get_updateDictionary(self, defname):
         #'x_gromos_barostat_target_pressure' : MetaInfoMap(startpage,
         #    depends=[
         #        {'test' : [['TARGET PRESSURE', ' is not None']],
-        #         'value' : 'TARGET PRESSURE'} 
+        #         'value' : 'TARGET PRESSURE'}
         #        ],
         #    lookupdict=self.cntrlDict,
         #    valtype='float',
@@ -611,9 +610,9 @@ def get_updateDictionary(self, defname):
         #'x_gromos_barostat_tau' : MetaInfoMap(startpage,
         #    depends=[
         #        {'test' : [['LANGEVIN OSCILLATION PERIOD', ' is not None']],
-        #         'value' : 'LANGEVIN OSCILLATION PERIOD'}, 
+        #         'value' : 'LANGEVIN OSCILLATION PERIOD'},
         #        {'test' : [['BERENDSEN RELAXATION TIME', ' is not None']],
-        #         'value' : 'BERENDSEN RELAXATION TIME'} 
+        #         'value' : 'BERENDSEN RELAXATION TIME'}
         #        ],
         #    lookupdict=self.cntrlDict,
         #    valtype='float',
@@ -626,7 +625,7 @@ def get_updateDictionary(self, defname):
         #'x_gromos_integrator_type' : MetaInfoMap(startpage,
         #    depends=[
         #        {'test' : [['integrator', ' is not None']],
-        #         'value' : 'integrator'}, 
+        #         'value' : 'integrator'},
         #        {'test' : [['thermostat', ' == \"langevin\"']],
         #         'assign' : 'Langevin'}
         #        ],
@@ -659,21 +658,21 @@ def get_updateDictionary(self, defname):
             ),
         #'x_gromos_thermostat_type' : MetaInfoMap(startpage,
         #    depends=[
-        #        {'test' : [['minimization', ' is None'], 
+        #        {'test' : [['minimization', ' is None'],
         #                   ['thermostat', ' == \"tcouple\"']],
-        #         'assign' : 'Berendsen'}, 
-        #        {'test' : [['minimization', ' is None'], 
+        #         'assign' : 'Berendsen'},
+        #        {'test' : [['minimization', ' is None'],
         #                   ['thermostat', ' == \"rescale\"']],
-        #         'assign' : 'Velocity Rescaling'}, 
-        #        {'test' : [['minimization', ' is None'], 
+        #         'assign' : 'Velocity Rescaling'},
+        #        {'test' : [['minimization', ' is None'],
         #                   ['thermostat', ' == \"reassign\"']],
-        #         'assign' : 'Velocity Reassigning'}, 
-        #        {'test' : [['minimization', ' is None'], 
+        #         'assign' : 'Velocity Reassigning'},
+        #        {'test' : [['minimization', ' is None'],
         #                   ['thermostat', ' == \"andersen\"']],
-        #         'assign' : 'Andersen'}, 
-        #        {'test' : [['minimization', ' is None'], 
-        #                   ['thermostat', ' == \"langevin\"']], 
-        #         'assign' : 'Nose-Hoover Langevin'}, 
+        #         'assign' : 'Andersen'},
+        #        {'test' : [['minimization', ' is None'],
+        #                   ['thermostat', ' == \"langevin\"']],
+        #         'assign' : 'Nose-Hoover Langevin'},
         #        ],
         #    lookupdict=self.extraDict,
         #    #autoSections=True,
@@ -734,7 +733,7 @@ def get_updateDictionary(self, defname):
     # ------------------------------------------------------------
     #   Definitions for section_single_configuration_calculation
     # ------------------------------------------------------------
-    singleconfcalc = { 
+    singleconfcalc = {
         #'atom_forces_type' : MetaInfoMap(startpage,
         #    depends=[{'assign' : 'Force Field'}],
         #    lookupdict=self.mddataDict
@@ -786,7 +785,7 @@ def get_updateDictionary(self, defname):
         'time_single_configuration_calculation_wall_start' : MetaInfoMap(startpage),
         'stress_tensor_kind' : MetaInfoMap(startpage,
             depends=[
-                {'test' : [['MINI', ' is not None']], 
+                {'test' : [['MINI', ' is not None']],
                  'assign' : 'geometry_optimization'},
                 {'test' : [['DYNA', ' is not None']],
                  'assign' : 'molecular_dynamics'}
@@ -822,7 +821,7 @@ def get_updateDictionary(self, defname):
             #autoSections=True,
             activeInfo=True,
             activeSections=['section_restricted_uri'],
-            subfunction={ 
+            subfunction={
                 'function' : self.parameter_file_name,
                 'supportDict' : self.fileDict,
                 },
@@ -852,11 +851,11 @@ def get_updateDictionary(self, defname):
             activeSections=['section_restricted_uri']
             ),
         }
-   
+
     # ------------------------------------------
     #   Definitions for section_frame_sequence
     # ------------------------------------------
-    frameseq = { 
+    frameseq = {
         #'frame_sequence_conserved_quantity_frames' : MetaInfoMap(startpage,
         #    depends=[{'store' : 'TS'}],
         #    valtype='int',
@@ -953,7 +952,7 @@ def get_updateDictionary(self, defname):
             depends=[{'store' : 'TIME'}],
             valtype='float',
             unitdict=self.unitDict,
-            unit='nano-second', 
+            unit='nano-second',
             # Calculates in AKMA units including inputs but prints in picoseconds.
             lookupdict=self.mddataDict
             ),
@@ -1152,7 +1151,7 @@ def get_updateDictionary(self, defname):
         #'previous_sequence_ref' : MetaInfoMap(startpage)
         }
 
-    frameseqend = { 
+    frameseqend = {
         #'number_of_conserved_quantity_evaluations_in_sequence' : MetaInfoMap(startpage,
         #    activeInfo=True,
         #    value=(lambda x: np.array(x['val']).flatten().shape[0] if(
@@ -1342,7 +1341,7 @@ def get_updateDictionary(self, defname):
         'system_name' : MetaInfoMap(startpage,
             activeInfo=True,
             activeSections=['section_system'],
-            subfunction={ 
+            subfunction={
                 'function' : MDData.MDDataConverter.topology_system_name,
                 'supportDict' : self.topoDict,
                 },
@@ -1469,7 +1468,7 @@ def get_updateDictionary(self, defname):
         'number_of_atoms_per_molecule_interaction' : MetaInfoMap(startpage),
         'number_of_molecule_interactions' : MetaInfoMap(startpage)
         }
-   
+
     # section_atom_in_molecule of section_molecule_type
     atom_in_mol = {
         'atom_in_molecule_charge' : MetaInfoMap(startpage),

@@ -10,9 +10,7 @@ syntax: glob
 *.bk
 *.swp
 .DS_Store
-
-# logging files
-detailed.log
+*.annotate
 
 # eclipse conf file
 .settings
@@ -52,3 +50,5 @@ TAGS
 
 lib/
 env/
+
+*.egg-info

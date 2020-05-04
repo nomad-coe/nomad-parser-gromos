@@ -1,11 +1,11 @@
 # Copyright 2018-2018 Berk Onat
-# 
+#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 #   Unless required by applicable law or agreed to in writing, software
 #   distributed under the License is distributed on an "AS IS" BASIS,
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,7 +15,6 @@
 from builtins import map
 from builtins import range
 from builtins import object
-import setup_paths
 import numpy as np
 import nomadcore.ActivateLogging
 from nomadcore.caching_backend import CachingLevel
@@ -24,9 +23,9 @@ from nomadcore.smart_parser import SmartParserCommon as SmartParser
 from nomadcore.smart_parser.SmartParserCommon import get_metaInfo, conv_str, conv_int, conv_float, open_section
 from nomadcore.smart_parser.SmartParserDictionary import getList_MetaStrInDict, getDict_MetaStrInDict
 from nomadcore.smart_parser.SmartParserDictionary import isMetaStrInDict, setMetaStrInDict, copyMetaDictToDict
-from GROMOSDictionary import get_updateDictionary, set_Dictionaries
-from GROMOSCommon import PARSERNAME, PROGRAMNAME, PARSERVERSION, PARSERTAG, LOGGER
-from GROMOSCommon import PARSER_INFO_DEFAULT, META_INFO_PATH, set_excludeList, set_includeList
+from .GROMOSDictionary import get_updateDictionary, set_Dictionaries
+from .GROMOSCommon import PARSERNAME, PROGRAMNAME, PARSERVERSION, PARSERTAG, LOGGER
+from .GROMOSCommon import PARSER_INFO_DEFAULT, META_INFO_PATH, set_excludeList, set_includeList
 from nomadcore.md_data_access import MDDataAccess as MDDA
 import argparse
 import logging
@@ -47,7 +46,7 @@ TEXTCHARS = bytearray({7,8,9,10,12,13,27} | set(range(0x20, 0x100)) - {0x7f})
 
 def is_file_binary(fName, checkBytes=None):
     if checkBytes is None:
-        checkBytes = 1024 
+        checkBytes = 1024
     with open(fName, 'rb') as fin:
         testin = fin.read(checkBytes)
     if is_binary_string(testin):
@@ -77,7 +76,7 @@ class GROMOSParser(SmartParser.ParserBase):
                                }
         SmartParser.ParserBase.__init__(
             self, re_program_name=re.compile(r"\s*"+PROGRAMNAME+"$"),
-            parsertag=PARSERTAG, metainfopath=META_INFO_PATH, 
+            parsertag=PARSERTAG, metainfopath=META_INFO_PATH,
             parserinfodef=PARSER_INFO_DEFAULT, recorderOn=True)
 
         set_Dictionaries(self)
@@ -95,27 +94,27 @@ class GROMOSParser(SmartParser.ParserBase):
             metaInfo = self.metaInfoEnv.infoKinds[name]
             if (name.startswith(PARSERTAG + '_mdin_') and
                 metaInfo.kindStr == "type_document_content" and
-                (PARSERTAG + "_mdin_method" in metaInfo.superNames or 
-                 PARSERTAG + "_mdin_run" in metaInfo.superNames or 
+                (PARSERTAG + "_mdin_method" in metaInfo.superNames or
+                 PARSERTAG + "_mdin_run" in metaInfo.superNames or
                  PARSERTAG + "_mdin_system" in metaInfo.superNames) or
                 name.startswith(PARSERTAG + '_parm_') and
                 metaInfo.kindStr == "type_document_content" and
-                (PARSERTAG + "_mdin_method" in metaInfo.superNames or 
+                (PARSERTAG + "_mdin_method" in metaInfo.superNames or
                  PARSERTAG + "_mdin_run" in metaInfo.superNames or
                  PARSERTAG + "_mdin_system" in metaInfo.superNames) or
                 #name.startswith(PARSERTAG + '_mdin_file_') and
                 name.startswith(PARSERTAG + '_inout_file_') or
                 #metaInfo.kindStr == "type_document_content" and
-                #(PARSERTAG + "_section_input_output_files" in metaInfo.superNames or 
+                #(PARSERTAG + "_section_input_output_files" in metaInfo.superNames or
                 # "section_run" in metaInfo.superNames) or
                 name.startswith(PARSERTAG + '_inout_control_') or
-                #(PARSERTAG + "_section_control_parameters" in metaInfo.superNames) or 
+                #(PARSERTAG + "_section_control_parameters" in metaInfo.superNames) or
                 #name.startswith(PARSERTAG + '_mdin_') and
                 #(PARSERTAG + "_section_control_parameters" in metaInfo.superNames) or
                 name.startswith(PARSERTAG + '_mdout_') or
                 name.startswith(PARSERTAG + '_mdout_') and
                 #metaInfo.kindStr == "type_document_content" and
-                (PARSERTAG + "_mdout_method" in metaInfo.superNames or 
+                (PARSERTAG + "_mdout_method" in metaInfo.superNames or
                  PARSERTAG + "_mdout_system" in metaInfo.superNames or
                  "section_run" in metaInfo.superNames or
                  PARSERTAG + "_mdout_single_configuration_calculation" in metaInfo.superNames)
@@ -258,8 +257,8 @@ class GROMOSParser(SmartParser.ParserBase):
     def onClose_section_run(self, backend, gIndex, section):
         """Trigger called when section_run is closed.
 
-        Write the keywords from control parametres and 
-        the GROMOS output from the parsed log output, 
+        Write the keywords from control parametres and
+        the GROMOS output from the parsed log output,
         which belong to settings_run.
         Variables are reset to ensure clean start for new run.
         """
@@ -272,7 +271,7 @@ class GROMOSParser(SmartParser.ParserBase):
                 'dictionary' : section_frameseq_Dict
                 }
         self.metaStorage.update(updateFrameDict)
-        self.metaStorage.updateBackend(backend.superBackend, 
+        self.metaStorage.updateBackend(backend.superBackend,
                 startsection=['section_frame_sequence'],
                 autoopenclose=False)
         backend.addValue("frame_sequence_to_sampling_ref", self.secSamplingGIndex)
@@ -306,14 +305,14 @@ class GROMOSParser(SmartParser.ParserBase):
 
         Determine whether topology, trajectory and input coordinate files are
         supplied to the parser
-        
+
         Initiates topology and trajectory file handles.
 
-        Captures topology, atomic positions, atom labels, lattice vectors and 
-        stores them before section_system and 
+        Captures topology, atomic positions, atom labels, lattice vectors and
+        stores them before section_system and
         section_single_configuration_calculation are encountered.
         """
-        # Checking whether topology, input 
+        # Checking whether topology, input
         # coordinates and trajectory files exist
         fileList=None
         fKey = PARSERTAG + '_inout_file_'
@@ -345,7 +344,7 @@ class GROMOSParser(SmartParser.ParserBase):
             'dictionary'   : section_control_Dict
             }
         self.metaStorage.update(updateDict)
-        self.metaStorage.updateBackend(backend.superBackend, 
+        self.metaStorage.updateBackend(backend.superBackend,
                 startsection=[PARSERTAG+'_section_control_parameters'],
                 autoopenclose=False)
 
@@ -426,7 +425,7 @@ class GROMOSParser(SmartParser.ParserBase):
                     'dictionary' : restrictionsDict
                     }
             self.metaStorageRestrict.update(updateDict)
-            self.metaStorageRestrict.updateBackend(backend.superBackend, 
+            self.metaStorageRestrict.updateBackend(backend.superBackend,
                     startsection=['section_restricted_uri'],
                     autoopenclose=False)
             backend.superBackend.closeSection("section_restricted_uri", self.secRestrictGIndex)
@@ -481,7 +480,7 @@ class GROMOSParser(SmartParser.ParserBase):
             'dictionary'   : section_control_Dict
             }
         self.metaStorage.update(updateDict)
-        self.metaStorage.updateBackend(backend.superBackend, 
+        self.metaStorage.updateBackend(backend.superBackend,
                 startsection=[PARSERTAG+'_section_control_parameters'],
                 autoopenclose=False)
 
@@ -497,8 +496,8 @@ class GROMOSParser(SmartParser.ParserBase):
         ninputstep = 0
         noutputstep = 0
         ntrajsteps = 0
-        nvelsteps = 0 
-        nforcesteps = 0 
+        nvelsteps = 0
+        nforcesteps = 0
 
         nstructKey = isMetaStrInDict("topology read from",self.filecntrlDict)
         ninputKey = isMetaStrInDict("configuration read from",self.filecntrlDict)
@@ -544,7 +543,7 @@ class GROMOSParser(SmartParser.ParserBase):
         if nfoutKey is not None:
             if self.cntrlDict[nfoutKey].activeInfo:
                 nforcesteps = conv_int(self.cntrlDict[nfoutKey].value, default=0)
-        
+
         if nlogsteps>0:
             logsteps = [i for i in range(0, nsteps, nlogsteps)]
             logsteps.append(nsteps)
@@ -603,7 +602,7 @@ class GROMOSParser(SmartParser.ParserBase):
                         'dictionary'   : section_file_Dict
                         }
                 self.metaStorage.update(updateDict)
-                self.metaStorage.updateBackend(backend.superBackend, 
+                self.metaStorage.updateBackend(backend.superBackend,
                         startsection=[PARSERTAG+'_section_control_parameters'],
                         autoopenclose=False)
 
@@ -614,7 +613,7 @@ class GROMOSParser(SmartParser.ParserBase):
                         'dictionary' : restrictionsDict
                         }
                 self.metaStorageRestrict.update(updateDict)
-                self.metaStorageRestrict.updateBackend(backend.superBackend, 
+                self.metaStorageRestrict.updateBackend(backend.superBackend,
                         startsection=['section_restricted_uri'],
                         autoopenclose=False)
                 backend.superBackend.closeSection("section_restricted_uri", self.secRestrictGIndex)
@@ -660,13 +659,13 @@ class GROMOSParser(SmartParser.ParserBase):
             'dictionary' : section_sampling_Dict
             }
         self.metaStorage.update(updateDict)
-        self.metaStorage.updateBackend(backend.superBackend, 
+        self.metaStorage.updateBackend(backend.superBackend,
                 startsection=['section_run'],
                 #startsection=['section_sampling_method'],
                 autoopenclose=False)
         if (gIndex is None or gIndex == -1 or gIndex == "-1"):
             backend.superBackend.closeSection("section_sampling_method", self.secSamplingGIndex)
-    
+
     def onOpen_section_topology(self, backend, gIndex, section):
         # keep track of the latest topology description section
         if (gIndex is None or gIndex == -1 or gIndex == "-1"):
@@ -685,7 +684,7 @@ class GROMOSParser(SmartParser.ParserBase):
             'dictionary' : section_topology_Dict
             }
         self.metaStorage.update(updateDict)
-        self.metaStorage.updateBackend(backend.superBackend, 
+        self.metaStorage.updateBackend(backend.superBackend,
                 startsection=['section_topology'],
                 autoopenclose=False)
         self.topology_atom_type_and_interactions(backend, gIndex)
@@ -711,7 +710,7 @@ class GROMOSParser(SmartParser.ParserBase):
             SloppyBackend = backend.superBackend
         else:
             SloppyBackend = backend
- 
+
         numatoms = None
         if self.numatoms is not None:
             numatoms = self.numatoms
@@ -737,11 +736,11 @@ class GROMOSParser(SmartParser.ParserBase):
         if self.trajectory is not None:
             if self.trajectory.unitcell_vectors is None:
                 self.trajectory.unitcell_vectors = unit_vectors
-        
+
         if self.topology:
             if self.newTopo:
 #            if (self.secTopologyGIndex is None or
-#                (self.secTopologyGIndex == -1 or 
+#                (self.secTopologyGIndex == -1 or
 #                self.secTopologyGIndex == "-1")):
                 self.onOpen_section_topology(backend, None, None)
                 self.onClose_section_topology(backend, None, None)
@@ -754,7 +753,7 @@ class GROMOSParser(SmartParser.ParserBase):
         if self.trajectory is not None:
             coordinates=self.trajectory
             positions=self.atompositions
-        elif(self.inputcoords is not None and 
+        elif(self.inputcoords is not None and
              self.MDcurrentstep == steps[0]):
             coordinates=self.inputcoords
             positions=self.inputpositions
@@ -781,9 +780,9 @@ class GROMOSParser(SmartParser.ParserBase):
             SloppyBackend.addArrayValues('atom_positions', np.transpose(np.asarray(
                 self.metaStorage.convertUnits(positions, "nano-meter", self.unitDict))))
             if coordinates.velocities is not None:
-                # Velocities in PDB files are stored in A/ps units.(PDB files are read for input 
+                # Velocities in PDB files are stored in A/ps units.(PDB files are read for input
                 #     coordinates, velocities, and forces)
-                # Velocities in GROMOS binary/DCD files are stored in GROMOS internal units and must be multiplied 
+                # Velocities in GROMOS binary/DCD files are stored in GROMOS internal units and must be multiplied
                 #     by PDBVELFACTOR=20.45482706 to convert to A/ps. (These files are used for output trajectory)
                 SloppyBackend.addArrayValues('atom_velocities', np.transpose(np.asarray(
                     self.metaStorage.convertUnits(
@@ -825,7 +824,7 @@ class GROMOSParser(SmartParser.ParserBase):
             if np.linalg.norm(unit_vectors[2])>0.0:
                 unit_periodicity[2]=True
             SloppyBackend.addArrayValues('configuration_periodic_dimensions', unit_periodicity)
- 
+
         if self.topology is not None:
             self.topology_system_name(backend, gIndex)
 
@@ -890,7 +889,7 @@ class GROMOSParser(SmartParser.ParserBase):
                 }
             self.secVDWGIndex = backend.superBackend.openSection("section_energy_van_der_Waals")
             self.metaStorage.update(updateDictVDW)
-            self.metaStorage.updateBackend(backend.superBackend, 
+            self.metaStorage.updateBackend(backend.superBackend,
                     startsection=['section_energy_van_der_Waals'],
                     autoopenclose=False)
             backend.superBackend.closeSection("section_energy_van_der_Waals", self.secVDWGIndex)
@@ -902,7 +901,7 @@ class GROMOSParser(SmartParser.ParserBase):
                 'dictionary' : section_singlecalc_Dict
                 }
             self.metaStorage.update(updateDict)
-            self.metaStorage.updateBackend(backend.superBackend, 
+            self.metaStorage.updateBackend(backend.superBackend,
                     startsection=['section_single_configuration_calculation'],
                     autoopenclose=False)
         if self.MDcurrentstep in forcesteps:
@@ -915,33 +914,33 @@ class GROMOSParser(SmartParser.ParserBase):
                         self.atompositions.velocities, "kilo-joule/(mol*nano-meter)", self.unitDict))))
                 # need to transpose array since its shape is [number_of_atoms,3] in the metadata
 
-        if(self.MDcurrentstep in trajsteps or 
+        if(self.MDcurrentstep in trajsteps or
            self.MDcurrentstep in velsteps):
             self.onOpen_section_system(backend, None, None)
             self.onClose_section_system(backend, None, None)
             backend.addValue('single_configuration_calculation_to_system_ref', self.secSystemGIndex)
             self.MDiter += 1
         else:
-            if(self.MDcurrentstep in logsteps or 
+            if(self.MDcurrentstep in logsteps or
                self.MDcurrentstep in forcesteps):
                 self.MDiter += 1
-            if(self.inputcoords is not None and 
+            if(self.inputcoords is not None and
                self.MDcurrentstep == steps[0] and
                self.inputpositions is not None):
                 self.onOpen_section_system(backend, None, None)
                 self.onClose_section_system(backend, None, None)
                 backend.addValue('single_configuration_calculation_to_system_ref', self.secSystemGIndex)
                 self.MDiter += 1
-            if(self.outputcoords is not None and 
+            if(self.outputcoords is not None and
                self.MDcurrentstep == steps[-1] and
                self.outputpositions is not None):
                 self.onOpen_section_system(backend, None, None)
                 self.onClose_section_system(backend, None, None)
                 backend.addValue('single_configuration_calculation_to_system_ref', self.secSystemGIndex)
                 self.MDiter += 1
-            #if((self.MDcurrentstep in logsteps and 
-            #    self.MDiter+1 in steps) or 
-            #    (self.MDcurrentstep in forcesteps and 
+            #if((self.MDcurrentstep in logsteps and
+            #    self.MDiter+1 in steps) or
+            #    (self.MDcurrentstep in forcesteps and
             #    self.MDiter+1 in steps)):
             #    self.MDiter += 1
         #if self.MDiter<len(steps):
@@ -966,7 +965,7 @@ class GROMOSParser(SmartParser.ParserBase):
 
     def fileNameTrans(self, fname, value):
         return value
-    
+
     def mdInfoTrans(self, fname, value):
         mdInfoDict = {
                 "minimization" : [],
@@ -1023,7 +1022,7 @@ class GROMOSParser(SmartParser.ParserBase):
                 else:
                     return value
         return value
-    
+
     def convertInt(self, fname, value):
         keyMapper = {
                 "STEP" : "MDcurrentstep",
@@ -1100,7 +1099,7 @@ class GROMOSParser(SmartParser.ParserBase):
                     if self.matchStrInTextFile(parser,fName,reStr):
                         includedList.append(fName)
         else:
-            includedList = fileList 
+            includedList = fileList
         # If and exclude list is given,
         # remove the files from list that
         # includes these Regular expression matches
@@ -1110,7 +1109,7 @@ class GROMOSParser(SmartParser.ParserBase):
                     if not self.matchStrInTextFile(parser,fName,reStr):
                         excludedList.append(fName)
         else:
-            excludedList = includedList 
+            excludedList = includedList
         return excludedList
 
     def storeTextFile(self, parser, textDict, storeName, textFile):
@@ -1131,7 +1130,7 @@ class GROMOSParser(SmartParser.ParserBase):
                     item = self.prune_list(item)
                 oList.append(item)
         return oList
- 
+
     def readGromosParameterFile(self, parser, fileName, cntrlDict):
         success = False
         emptyLine = re.compile(r"^\s*$")
@@ -1171,21 +1170,21 @@ class GROMOSParser(SmartParser.ParserBase):
                         continue
                     if cmdLine.startswith('END'):
                         section = None
-                        enid = 0 
-                        syid = 0 
-                        inid = 0 
-                        stid = 0 
-                        bcid = 0 
-                        prid = 0 
-                        csid = 0 
-                        frid = 0 
-                        plid = 0 
-                        nbid = 0 
-                        mbid = 0 
-                        psid = 0 
-                        cfid = 0 
-                        ctid = 0 
-                        wtid = 0 
+                        enid = 0
+                        syid = 0
+                        inid = 0
+                        stid = 0
+                        bcid = 0
+                        prid = 0
+                        csid = 0
+                        frid = 0
+                        plid = 0
+                        nbid = 0
+                        mbid = 0
+                        psid = 0
+                        cfid = 0
+                        ctid = 0
+                        wtid = 0
                         bathalg = 0
                         numbaths = 1
                         dofset = 1
@@ -1253,25 +1252,25 @@ class GROMOSParser(SmartParser.ParserBase):
                             addok = False
                             if enid == 0:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'EMIN-NTEM', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'EMIN-NTEM', item)
                             elif enid == 1:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'EMIN-NCYC', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'EMIN-NCYC', item)
                             elif enid == 2:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'EMIN-DELE', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'EMIN-DELE', item)
                             elif enid == 3:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'EMIN-DX0', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'EMIN-DX0', item)
                             elif enid == 4:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'EMIN-DXM', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'EMIN-DXM', item)
                             elif enid == 5:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'EMIN-NMIN', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'EMIN-NMIN', item)
                             elif enid == 6:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'EMIN-FLIM', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'EMIN-FLIM', item)
                             if addok:
                                 enid += 1
                                 success = rtn[0] if success is False else True
@@ -1280,10 +1279,10 @@ class GROMOSParser(SmartParser.ParserBase):
                             addok = False
                             if syid == 0:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'SYS-NPM', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'SYS-NPM', item)
                             elif syid == 1:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'SYS-NSM', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'SYS-NSM', item)
                             if addok:
                                 syid += 1
                                 success = rtn[0] if success is False else True
@@ -1292,13 +1291,13 @@ class GROMOSParser(SmartParser.ParserBase):
                             addok = False
                             if stid == 0:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'STEP-NSTLIM', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'STEP-NSTLIM', item)
                             elif stid == 1:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'STEP-T', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'STEP-T', item)
                             elif stid == 2:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'STEP-DT', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'STEP-DT', item)
                             if addok:
                                 stid += 1
                                 success = rtn[0] if success is False else True
@@ -1307,36 +1306,36 @@ class GROMOSParser(SmartParser.ParserBase):
                             addok = False
                             if mbid == 0:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'BATH-ALG', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'BATH-ALG', item)
                                 try:
                                     bathalg=int(item)
                                 except (ValueError, TypeError):
                                     pass
                             elif(mbid == 1 and bathalg>1):
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'BATH-NUM', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'BATH-NUM', item)
                             elif((mbid == 1 and bathalg<2) or (mbid == 2 and bathalg>1)):
                                 addok = True
                                 rtn = setMetaStrInDict(self, 'cntrlDict', 'BATH-NBATHS', item)
                                 numbaths=int(item)
-                            elif((mbid >= 2 and mbid < 2+(2*numbaths) and bathalg<2) or 
+                            elif((mbid >= 2 and mbid < 2+(2*numbaths) and bathalg<2) or
                                  (mbid >= 3 and mbid < 3+(2*numbaths) and bathalg>1)):
                                 addok = True
-                                if(((mbid-1)%2==1 and bathalg<2) or 
+                                if(((mbid-1)%2==1 and bathalg<2) or
                                    ((mbid-2)%2==1 and bathalg>1)):
                                     if temp == None:
                                         temp = item
                                     else:
                                         temp = temp + ', ' + item
                                     rtn = setMetaStrInDict(self, 'cntrlDict', 'BATH-TEMP', temp)
-                                elif(((mbid-1)%2==0 and bathalg<2) or 
+                                elif(((mbid-1)%2==0 and bathalg<2) or
                                      ((mbid-2)%2==0 and bathalg>1)):
                                     if tau == None:
                                         tau = item
                                     else:
                                         tau = tau + ', ' + item
                                     rtn = setMetaStrInDict(self, 'cntrlDict', 'BATH-TAU', tau)
-                            elif((mbid == 2+(2*numbaths) and bathalg<2) or 
+                            elif((mbid == 2+(2*numbaths) and bathalg<2) or
                                  (mbid == 3+(2*numbaths) and bathalg>1)):
                                 addok = True
                                 rtn = setMetaStrInDict(self, 'cntrlDict', 'BATH-DOFSET', item)
@@ -1344,7 +1343,7 @@ class GROMOSParser(SmartParser.ParserBase):
                                     dofset=int(item)
                                 except (ValueError, TypeError):
                                     pass
-                            elif((mbid >= 3+(2*numbaths) and mbid < 3+(2*numbaths)+dofset and bathalg<2) or 
+                            elif((mbid >= 3+(2*numbaths) and mbid < 3+(2*numbaths)+dofset and bathalg<2) or
                                  (mbid >= 4+(2*numbaths) and mbid < 4+(2*numbaths)+dofset and bathalg>1)):
                                 addok = True
                                 if last == None:
@@ -1352,7 +1351,7 @@ class GROMOSParser(SmartParser.ParserBase):
                                 else:
                                     last = last + ', ' + item
                                 rtn = setMetaStrInDict(self, 'cntrlDict', 'BATH-LAST', last)
-                            elif((mbid >= 3+(2*numbaths)+dofset and mbid < 3+(2*numbaths)+(2*dofset) and bathalg<2) or 
+                            elif((mbid >= 3+(2*numbaths)+dofset and mbid < 3+(2*numbaths)+(2*dofset) and bathalg<2) or
                                  (mbid >= 4+(2*numbaths)+dofset and mbid < 4+(2*numbaths)+(2*dofset) and bathalg>1)):
                                 addok = True
                                 if combath == None:
@@ -1360,7 +1359,7 @@ class GROMOSParser(SmartParser.ParserBase):
                                 else:
                                     combath = combath + ', ' + item
                                 rtn = setMetaStrInDict(self, 'cntrlDict', 'BATH-COMBATH', combath)
-                            elif((mbid >= 3+(2*numbaths)+(2*dofset) and mbid < 3+(2*numbaths)+(3*dofset) and bathalg<2) or 
+                            elif((mbid >= 3+(2*numbaths)+(2*dofset) and mbid < 3+(2*numbaths)+(3*dofset) and bathalg<2) or
                                  (mbid >= 4+(2*numbaths)+(2*dofset) and mbid < 4+(2*numbaths)+(3*dofset) and bathalg>1)):
                                 addok = True
                                 if irbath == None:
@@ -1376,33 +1375,33 @@ class GROMOSParser(SmartParser.ParserBase):
                             addok = False
                             if psid == 0:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'PRES-COUPLE', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'PRES-COUPLE', item)
                             elif psid == 1:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'PRES-SCALE', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'PRES-SCALE', item)
                             elif psid == 2:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'PRES-COMP', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'PRES-COMP', item)
                             elif psid == 3:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'PRES-TAUP', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'PRES-TAUP', item)
                             elif psid == 4:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'PRES-VIRIAL', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'PRES-VIRIAL', item)
                             elif psid >= 5 and psid <= 7:
                                 addok = True
                                 if aniso is None:
                                     aniso = item
                                 else:
                                     aniso = aniso + ', ' + item
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'PRES-ANISO', aniso) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'PRES-ANISO', aniso)
                             elif psid >= 8 and psid <= 16:
                                 addok = True
                                 if pres0 is None:
                                     pres0 = item
                                 else:
                                     pres0 = pres0 + ', ' + item
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'PRES-INIT0', pres0) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'PRES-INIT0', pres0)
                             if addok:
                                 psid += 1
                                 success = rtn[0] if success is False else True
@@ -1411,34 +1410,34 @@ class GROMOSParser(SmartParser.ParserBase):
                             addok = False
                             if inid == 0:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'INIT-NTIVEL', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'INIT-NTIVEL', item)
                             elif inid == 1:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'INIT-NTISHK', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'INIT-NTISHK', item)
                             elif inid == 2:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'INIT-NTINHT', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'INIT-NTINHT', item)
                             elif inid == 3:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'INIT-NTINHB', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'INIT-NTINHB', item)
                             elif inid == 4:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'INIT-NTISHI', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'INIT-NTISHI', item)
                             elif inid == 5:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'INIT-NTIRTC', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'INIT-NTIRTC', item)
                             elif inid == 6:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'INIT-NTICOM', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'INIT-NTICOM', item)
                             elif inid == 7:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'INIT-NTISTI', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'INIT-NTISTI', item)
                             elif inid == 8:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'INIT-IG', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'INIT-IG', item)
                             elif inid == 9:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'INIT-TEMPI', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'INIT-TEMPI', item)
                             if addok:
                                 inid += 1
                                 success = rtn[0] if success is False else True
@@ -1447,10 +1446,10 @@ class GROMOSParser(SmartParser.ParserBase):
                             addok = False
                             if bcid == 0:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'BCND-NTB', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'BCND-NTB', item)
                             elif bcid == 1:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'BCND-NDFMIN', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'BCND-NDFMIN', item)
                             if addok:
                                 bcid += 1
                                 success = rtn[0] if success is False else True
@@ -1459,10 +1458,10 @@ class GROMOSParser(SmartParser.ParserBase):
                             addok = False
                             if prid == 0:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'PRNT-NTPR', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'PRNT-NTPR', item)
                             elif prid == 1:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'PRNT-NTPP', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'PRNT-NTPP', item)
                             if addok:
                                 prid += 1
                                 success = rtn[0] if success is False else True
@@ -1471,25 +1470,25 @@ class GROMOSParser(SmartParser.ParserBase):
                             addok = False
                             if wtid == 0:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'WRIT-NTWX', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'WRIT-NTWX', item)
                             elif wtid == 1:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'WRIT-NTWSE', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'WRIT-NTWSE', item)
                             elif wtid == 2:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'WRIT-NTWV', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'WRIT-NTWV', item)
                             elif wtid == 3:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'WRIT-NTWF', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'WRIT-NTWF', item)
                             elif wtid == 4:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'WRIT-NTWE', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'WRIT-NTWE', item)
                             elif wtid == 5:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'WRIT-NTWG', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'WRIT-NTWG', item)
                             elif wtid == 6:
                                 addok = True
-                                rtn = setMetaStrInDict(self, 'cntrlDict', 'WRIT-NTWB', item) 
+                                rtn = setMetaStrInDict(self, 'cntrlDict', 'WRIT-NTWB', item)
                             if addok:
                                 wtid += 1
                                 success = rtn[0] if success is False else True
@@ -1543,7 +1542,7 @@ class GROMOSParser(SmartParser.ParserBase):
                             for filename in fnmatch.filter(filenames, findfile):
                                 matches.append(os.path.join(root, filename))
                                 break
- 
+
             inputFile = None
             if matches:
                 inputFile = matches[0]
@@ -1568,8 +1567,8 @@ class GROMOSParser(SmartParser.ParserBase):
 
         self.mdTempHeaderDict={'BATH':0, 'EKIN':1, 'EKIN-MOL-TR':2,
                                'EKIN-MOL-IR':3, 'T':4, 'T-MOL-TR':5,
-                               'T-MOL-IR':6, 'SCALE':7} 
-        self.mdStepHeaderDict={'STEP':0, 'TIME':1} 
+                               'T-MOL-IR':6, 'SCALE':7}
+        self.mdStepHeaderDict={'STEP':0, 'TIME':1}
 
         cntrlNameList=getList_MetaStrInDict(self.metaDicts['cntrl'])
         filecntrlNameList=getList_MetaStrInDict(self.metaDicts['filecntrl'])
@@ -1584,7 +1583,7 @@ class GROMOSParser(SmartParser.ParserBase):
               "waitlist"          : None,
               "stopOnMatchStr"    : r"^END\s*",
               "quitOnMatchStr"    : r"^END\s*",
-              "metaNameStart"     : PARSERTAG + "_inout_control", 
+              "metaNameStart"     : PARSERTAG + "_inout_control",
               "matchNameList"     : cntrlNameList,
               "matchNameDict"     : "mddataDict",
               "updateMatchDict"   : False,
@@ -1595,8 +1594,8 @@ class GROMOSParser(SmartParser.ParserBase):
                   "makeOneLinerBetween" : [
                       [r"^TIMESTEP", r"^END", [["\n"], ["END"], ["TIMESTEP", "STEP TIME"]]]
                       ],
-                  #"controlsections"  : ["section_single_configuration_calculation"], 
-                  #"controlsave"      : "sectioncontrol", 
+                  #"controlsections"  : ["section_single_configuration_calculation"],
+                  #"controlsave"      : "sectioncontrol",
                   #"controldict"      : "stepcontrolDict",
                   }
               },
@@ -1607,7 +1606,7 @@ class GROMOSParser(SmartParser.ParserBase):
               "waitlist"          : None,
               "stopOnMatchStr"    : r"^END\s*",
               "quitOnMatchStr"    : r"^END\s*",
-              "metaNameStart"     : PARSERTAG + "_inout_control", 
+              "metaNameStart"     : PARSERTAG + "_inout_control",
               "matchNameList"     : cntrlNameList,
               "matchNameDict"     : "mddataDict",
               "updateMatchDict"   : False,
@@ -1615,8 +1614,8 @@ class GROMOSParser(SmartParser.ParserBase):
               "stopOnFirstLine"   : False,
               "parserOptions"     : {
                   "lineFilter"       : None,
-                  #"controlsections"  : ["section_single_configuration_calculation"], 
-                  #"controlsave"      : "sectioncontrol", 
+                  #"controlsections"  : ["section_single_configuration_calculation"],
+                  #"controlsave"      : "sectioncontrol",
                   #"controldict"      : "stepcontrolDict",
                   }
               },
@@ -1627,24 +1626,24 @@ class GROMOSParser(SmartParser.ParserBase):
               "waitlist"          : [["md_energy_parser"]],
               "stopOnMatchStr"    : r"(?:^END|\s*-------------------)",
               "quitOnMatchStr"    : r"(?:^END|\s*-------------------)",
-              "metaNameStart"     : PARSERTAG + "_mdout_", 
+              "metaNameStart"     : PARSERTAG + "_mdout_",
               "matchNameList"     : mddataNameList,
               "matchNameDict"     : "mddataDict",
               "updateMatchDict"   : True,
               "onlyCaseSensitive" : False,
               "stopOnFirstLine"   : False,
-              "parserOptions"     : { 
-                  "header"           : True, 
-                  "headerList"       : "mdTempHeaderDict", 
-                  "wrap"             : False, 
-                  "tablelines"       : 1, 
-                  "tablestartsat"    : r"\s*BATH\s*EKIN\s*", 
+              "parserOptions"     : {
+                  "header"           : True,
+                  "headerList"       : "mdTempHeaderDict",
+                  "wrap"             : False,
+                  "tablelines"       : 1,
+                  "tablestartsat"    : r"\s*BATH\s*EKIN\s*",
                   "tableendsat"      : r"\s*--------------------",
                   "lineFilter"       : None,
                   "movetostopline"   : False,
                   "parsercntrlattr"  : "MDcurrentstep",
                   "parsercntrlin"    : "logsteps",
-                  "lookupdict"       : "stepcontrolDict" 
+                  "lookupdict"       : "stepcontrolDict"
                   }
               },
             # thermostat save Parser
@@ -1655,28 +1654,28 @@ class GROMOSParser(SmartParser.ParserBase):
               #"waitlist"          : [["md_step_parser"]],
               "stopOnMatchStr"    : "AlwaysStop",
               "quitOnMatchStr"    : "AlwaysStop",
-              "metaNameStart"     : PARSERTAG + "_mdout_", 
+              "metaNameStart"     : PARSERTAG + "_mdout_",
               "matchNameList"     : mddataNameList,
               "matchNameDict"     : "mddataDict",
               "updateMatchDict"   : True,
               "onlyCaseSensitive" : False,
               "stopOnFirstLine"   : False,
-              "parserOptions"     : { 
-                  "dictionary"       : "stepcontrolDict", 
+              "parserOptions"     : {
+                  "dictionary"       : "stepcontrolDict",
                   "dicttype"         : "standard", # (standard or smartparser)
-                  "readwritedict"    : "write", 
+                  "readwritedict"    : "write",
                   "keyMapper"        : {"STEP" : "MDcurrentstep"},
                   "updatefunc"       : "max",
                   "updateattrs"      : ["MDcurrentstep"],
-                  "controlsections"  : ["section_single_configuration_calculation"], 
-                  "controlsave"      : "sectioncontrol", 
+                  "controlsections"  : ["section_single_configuration_calculation"],
+                  "controlsave"      : "sectioncontrol",
                   "controldict"      : "stepcontrolDict",
                   "controlattrs"     : ["MDcurrentstep"],
                   "preprocess"       : self.convertInt,
                   "postprocess"      : self.convertInt,
                   #"parsercntrlattr"  : "MDcurrentstep",
                   #"parsercntrlin"    : "steps",
-                  #"lookupdict"       : "stepcontrolDict" 
+                  #"lookupdict"       : "stepcontrolDict"
                   }
               },
             # Section Control Parser
@@ -1692,16 +1691,16 @@ class GROMOSParser(SmartParser.ParserBase):
               "updateMatchDict"   : False,
               "onlyCaseSensitive" : True,
               "stopOnFirstLine"   : False,
-              "parserOptions"     : { 
-                  "sectionname"      : "section_single_configuration_calculation", 
-                  "sectionopen"      : True, 
-                  "sectionopenattr"  : "MDcurrentstep", 
-                  "sectionopenin"    : "steps", 
-                  "sectionclose"     : True, 
-                  "sectioncloseattr" : "MDcurrentstep", 
-                  "sectionclosein"   : "steps", 
-                  "activatesection"  : "sectioncontrol", 
-                  "lookupdict"       : "stepcontrolDict" 
+              "parserOptions"     : {
+                  "sectionname"      : "section_single_configuration_calculation",
+                  "sectionopen"      : True,
+                  "sectionopenattr"  : "MDcurrentstep",
+                  "sectionopenin"    : "steps",
+                  "sectionclose"     : True,
+                  "sectioncloseattr" : "MDcurrentstep",
+                  "sectionclosein"   : "steps",
+                  "activatesection"  : "sectioncontrol",
+                  "lookupdict"       : "stepcontrolDict"
                   }
               },
             # Readline Control Parser
@@ -1717,18 +1716,18 @@ class GROMOSParser(SmartParser.ParserBase):
               "updateMatchDict"   : False,
               "onlyCaseSensitive" : True,
               "stopOnFirstLine"   : False,
-              "parserOptions"     : { 
-                  "peeklineFirst"    : True, 
+              "parserOptions"     : {
+                  "peeklineFirst"    : True,
                   "waitatlineStr"    : r"\s*TIMESTEP\s*",
-                  "controlwait"      : None, 
-                  "controlattr"      : "MDcurrentstep", 
-                  "controlnextattr"  : "MDnextstep", 
-                  #"controllast"      : -1, 
-                  "controlskip"      : [], 
-                  "controlin"        : "steps", 
-                  "controlcounter"   : "targetstep", 
+                  "controlwait"      : None,
+                  "controlattr"      : "MDcurrentstep",
+                  "controlnextattr"  : "MDnextstep",
+                  #"controllast"      : -1,
+                  "controlskip"      : [],
+                  "controlin"        : "steps",
+                  "controlcounter"   : "targetstep",
                   "controldict"      : "stepcontrolDict",
-                  "lookupdict"       : "stepcontrolDict" 
+                  "lookupdict"       : "stepcontrolDict"
                   }
               },
             ]
@@ -1741,15 +1740,15 @@ class GROMOSParser(SmartParser.ParserBase):
               "waitlist"          : None,
               "stopOnMatchStr"    : r"^TOPOLOGY\s*",
               "quitOnMatchStr"    : r"^TOPOLOGY\s*",
-              "metaNameStart"     : PARSERTAG + "_inout_control", 
+              "metaNameStart"     : PARSERTAG + "_inout_control",
               "matchNameList"     : cntrlNameList,
               "matchNameDict"     : "topocntrlDict",
               "updateMatchDict"   : False,
               "onlyCaseSensitive" : False,
               "stopOnFirstLine"   : False,
               "parserOptions"     : {
-                  "controlsections"  : ["x_gromos_section_control_parameters"], 
-                  "controlsave"      : "sectioncontrol", 
+                  "controlsections"  : ["x_gromos_section_control_parameters"],
+                  "controlsave"      : "sectioncontrol",
                   "controldict"      : "stepcontrolDict",
                   }
               },
@@ -1760,45 +1759,45 @@ class GROMOSParser(SmartParser.ParserBase):
               "waitlist"          : None,
               "stopOnMatchStr"    : r"^END\s*",
               "quitOnMatchStr"    : r"^END\s*",
-              "metaNameStart"     : PARSERTAG + "_inout_control", 
+              "metaNameStart"     : PARSERTAG + "_inout_control",
               "matchNameList"     : cntrlNameList,
               "matchNameDict"     : "topocntrlDict",
               "updateMatchDict"   : False,
               "onlyCaseSensitive" : False,
               "stopOnFirstLine"   : False,
               "parserOptions"     : {
-                  "makeOneLinerBetween" : [ 
-                      [r"^MAKE_TOP\s*", r"^(?:Force-field\s*code|\s*RESNAME)\s*", 
+                  "makeOneLinerBetween" : [
+                      [r"^MAKE_TOP\s*", r"^(?:Force-field\s*code|\s*RESNAME)\s*",
                           [["\n", " "]]],
-                      [r"^COM_TOP\s*", r"^(?:Parameters\s*from|\s*RESNAME)\s*", 
+                      [r"^COM_TOP\s*", r"^(?:Parameters\s*from|\s*RESNAME)\s*",
                           [["\n", " "]]],
-                      [r"^\s*RESNAME", r"^\s*(?:END|ATOMTYPENAME|SOLUTEATOM)\s*", 
+                      [r"^\s*RESNAME", r"^\s*(?:END|ATOMTYPENAME|SOLUTEATOM)\s*",
                           [["\n", " "]]],
-                      [r"^\s*ATOMTYPENAME", r"^\s*(?:END|SOLUTEATOM|CGSOLUTE)\s*", 
+                      [r"^\s*ATOMTYPENAME", r"^\s*(?:END|SOLUTEATOM|CGSOLUTE)\s*",
                           [["\n", " "]]],
-                      [r"^\s*SOLUTEATOM", r"^\s*(?:END|CGSOLUTE|LJEXCEPTIONS)\s*", 
+                      [r"^\s*SOLUTEATOM", r"^\s*(?:END|CGSOLUTE|LJEXCEPTIONS)\s*",
                           [["\n", " "]]],
-                      [r"^\s*CGSOLUTE", r"^\s*(?:END|LJEXCEPTIONS|BOND)\s*", 
+                      [r"^\s*CGSOLUTE", r"^\s*(?:END|LJEXCEPTIONS|BOND)\s*",
                           [["\n", " "]]],
-                      [r"^\s*LJEXCEPTIONS", r"^\s*(?:END|BOND)\s*", 
+                      [r"^\s*LJEXCEPTIONS", r"^\s*(?:END|BOND)\s*",
                           [["\n", " "]]],
-                      [r"^\s*BONDDP", r"^\s*(?:END|BONDANGLE|IMPDIHEDRAL)\s*", 
+                      [r"^\s*BONDDP", r"^\s*(?:END|BONDANGLE|IMPDIHEDRAL)\s*",
                           [["\n", " "]]],
-                      [r"^\s*BONDANGLE", r"^\s*(?:END|IMPDIHEDRAL|DIHEDRAL)\s*", 
+                      [r"^\s*BONDANGLE", r"^\s*(?:END|IMPDIHEDRAL|DIHEDRAL)\s*",
                           [["\n", " "]]],
-                      [r"^\s*BOND", r"^\s*(?:END|BONDDP|BONDANGLE)\s*", 
+                      [r"^\s*BOND", r"^\s*(?:END|BONDDP|BONDANGLE)\s*",
                           [["\n", " "]]],
-                      [r"^\s*IMPDIHEDRAL", r"^\s*(?:END|DIHEDRAL|CROSSDIHEDRAL)\s*", 
+                      [r"^\s*IMPDIHEDRAL", r"^\s*(?:END|DIHEDRAL|CROSSDIHEDRAL)\s*",
                           [["\n", " "]]],
-                      [r"^\s*CROSSDIHEDRAL", r"^\s*(?:END|SOLVENT)\s*", 
+                      [r"^\s*CROSSDIHEDRAL", r"^\s*(?:END|SOLVENT)\s*",
                           [["\n", " "]]],
-                      [r"^\s*DIHEDRAL", r"^\s*(?:END|CROSSDIHEDRAL|SOLVENT)\s*", 
+                      [r"^\s*DIHEDRAL", r"^\s*(?:END|CROSSDIHEDRAL|SOLVENT)\s*",
                           [["\n", " "],["dihedrals", "propdihedrals"]]],
-                      [r"^\s*SOLVENT", r"^\s*(?:END|SOLUTE)\s*", 
+                      [r"^\s*SOLVENT", r"^\s*(?:END|SOLUTE)\s*",
                           [["\n", " "]]],
                       ],
-                  "controlsections"  : ["x_gromos_section_control_parameters"], 
-                  "controlsave"      : "sectioncontrol", 
+                  "controlsections"  : ["x_gromos_section_control_parameters"],
+                  "controlsave"      : "sectioncontrol",
                   "controldict"      : "stepcontrolDict",
                   }
               },
@@ -1809,32 +1808,32 @@ class GROMOSParser(SmartParser.ParserBase):
               "waitlist"          : None,
               "stopOnMatchStr"    : r"^END\s*",
               "quitOnMatchStr"    : r"^END\s*",
-              "metaNameStart"     : PARSERTAG + "_inout_control", 
+              "metaNameStart"     : PARSERTAG + "_inout_control",
               "matchNameList"     : cntrlNameList,
               "matchNameDict"     : "ffcntrlDict",
               "updateMatchDict"   : False,
               "onlyCaseSensitive" : False,
               "stopOnFirstLine"   : False,
               "parserOptions"     : {
-                  "makeOneLinerBetween" : [ 
-                      [r"^FORCEFIELD", r"^\s*(?:nonbonded\s*force|Pairlist\s*Algorithm)\s*", 
-                          [["\n", " "], 
+                  "makeOneLinerBetween" : [
+                      [r"^FORCEFIELD", r"^\s*(?:nonbonded\s*force|Pairlist\s*Algorithm)\s*",
+                          [["\n", " "],
                            ["improper dihedral inter", "improper-dihedral-inter"],
                            ["dihedral interaction", "propdihedral_interaction"]]
                           ],
-                      [r"^\s*cutoff", r"^\s*(?:pairlist\s*creation|REACTION\s*FIELD)\s*", 
-                          [["\n", " "], 
+                      [r"^\s*cutoff", r"^\s*(?:pairlist\s*creation|REACTION\s*FIELD)\s*",
+                          [["\n", " "],
                            ["shortrange cutoff      :", "shortrange-cutoff- :"],
                            ["longrange cutoff       :", "longrange-cutoff- :"]]
                           ],
-                      [r"^\s*reactionfield\s*cutoff", r"^(?:\s*perturbation|END)\s*", 
-                          [["\n", " "], 
+                      [r"^\s*reactionfield\s*cutoff", r"^(?:\s*perturbation|END)\s*",
+                          [["\n", " "],
                            ["reactionfield cutoff   :", "reactionfield-cutoff- :"],
                            ["reactionfield epsilon  :", "reactionfield-epsilon- :"]]
                           ],
                       ],
-                  "controlsections"  : ["x_gromos_section_control_parameters"], 
-                  "controlsave"      : "sectioncontrol", 
+                  "controlsections"  : ["x_gromos_section_control_parameters"],
+                  "controlsave"      : "sectioncontrol",
                   "controldict"      : "stepcontrolDict",
                   }
               },
@@ -1845,15 +1844,15 @@ class GROMOSParser(SmartParser.ParserBase):
               "waitlist"          : None,
               "stopOnMatchStr"    : r"^enter\s*the\s*next\s*level\s*",
               "quitOnMatchStr"    : r"^enter\s*the\s*next\s*level\s*",
-              "metaNameStart"     : PARSERTAG + "_inout_control", 
+              "metaNameStart"     : PARSERTAG + "_inout_control",
               "matchNameList"     : cntrlNameList,
               "matchNameDict"     : "filecntrlDict",
               "updateMatchDict"   : False,
               "onlyCaseSensitive" : False,
               "stopOnFirstLine"   : False,
               "parserOptions"     : {
-                  "controlsections"  : ["x_gromos_section_control_parameters"], 
-                  "controlsave"      : "sectioncontrol", 
+                  "controlsections"  : ["x_gromos_section_control_parameters"],
+                  "controlsave"      : "sectioncontrol",
                   "controldict"      : "stepcontrolDict",
                   }
               },
@@ -1870,16 +1869,16 @@ class GROMOSParser(SmartParser.ParserBase):
               "updateMatchDict"   : False,
               "onlyCaseSensitive" : True,
               "stopOnFirstLine"   : False,
-              "parserOptions"     : { 
-                  "sectionname"      : "x_gromos_section_control_parameters", 
-                  "sectionopen"      : True, 
-                  "sectionopenattr"  : "MDcurrentstep", 
-                  "sectionopenin"    : "cntrlparmstep", 
-                  "sectionclose"     : True, 
-                  "sectioncloseattr" : "MDcurrentstep", 
-                  "sectionclosein"   : "cntrlparmstep", 
-                  "activatesection"  : "sectioncontrol", 
-                  "lookupdict"       : "stepcontrolDict" 
+              "parserOptions"     : {
+                  "sectionname"      : "x_gromos_section_control_parameters",
+                  "sectionopen"      : True,
+                  "sectionopenattr"  : "MDcurrentstep",
+                  "sectionopenin"    : "cntrlparmstep",
+                  "sectionclose"     : True,
+                  "sectioncloseattr" : "MDcurrentstep",
+                  "sectionclosein"   : "cntrlparmstep",
+                  "activatesection"  : "sectioncontrol",
+                  "lookupdict"       : "stepcontrolDict"
                   }
               },
             # MD LOOP Parser Caller
@@ -1889,7 +1888,7 @@ class GROMOSParser(SmartParser.ParserBase):
               "waitlist"          : None,
               "stopOnMatchStr"    : r"\s*FINAL\s*DATA\s*",
               "quitOnMatchStr"    : r"\s*FINAL\s*DATA\s*",
-              "metaNameStart"     : None, 
+              "metaNameStart"     : None,
               "matchNameList"     : None,
               "matchNameDict"     : None,
               "updateMatchDict"   : False,
@@ -1923,18 +1922,18 @@ class GROMOSParser(SmartParser.ParserBase):
               "updateMatchDict"   : False,
               "onlyCaseSensitive" : False,
               "stopOnFirstLine"   : False,
-              "parserOptions"     : { 
-                  "peeklineFirst"    : True, 
+              "parserOptions"     : {
+                  "peeklineFirst"    : True,
                   "waitatlineStr"    : "\s*TIMESTEP\s*",
-                  "controlwait"      : None, 
-                  "controlattr"      : "MDcurrentstep", 
-                  #"controlnextattr"  : "MDnextstep", 
-                  #"controllast"      : -1, 
-                  "controlskip"      : [-1], 
-                  "controlin"        : "opencntrlstep", 
-                  #"controlcounter"   : "targetstep", 
+                  "controlwait"      : None,
+                  "controlattr"      : "MDcurrentstep",
+                  #"controlnextattr"  : "MDnextstep",
+                  #"controllast"      : -1,
+                  "controlskip"      : [-1],
+                  "controlin"        : "opencntrlstep",
+                  #"controlcounter"   : "targetstep",
                   #"controldict"      : "stepcontrolDict",
-                  #"lookupdict"       : "stepcontrolDict" 
+                  #"lookupdict"       : "stepcontrolDict"
                   }
               },
             ]
@@ -1954,56 +1953,56 @@ class GROMOSParser(SmartParser.ParserBase):
                     SM(name='ProgramInfo',
                         startReStr=r"\s*version\s*:\s*"
                                    "(?P<"+PARSERTAG+"_mdin_finline>[a-zA-Z0-9:., ]+)\s*",
-                       adHoc=lambda p: p.backend.addValue( 
-                           "program_version", 
+                       adHoc=lambda p: p.backend.addValue(
+                           "program_version",
                            ' '.join(p.lastMatch[
                                PARSERTAG+"_mdin_finline"
                                ].replace('\n', ' ').strip().split()))),
-                    #SM(name='logruninfo', 
+                    #SM(name='logruninfo',
                     #    startReStr=r"\s*build\s*date\s*:\s*"
                     #               "(?P<"+PARSERTAG+"_mdin_finline>"
                     #               "[a-zA-Z0-9/:. ]+)\s*",
-                    #   adHoc=lambda p: p.backend.addValue( 
+                    #   adHoc=lambda p: p.backend.addValue(
                     #       "time_run_date_start", datetime.datetime.strptime(
-                    #           p.lastMatch[PARSERTAG+"_mdin_finline"].strip(), 
+                    #           p.lastMatch[PARSERTAG+"_mdin_finline"].strip(),
                     #           '%a %b %d %H:%M:%S %Z %Y').timestamp())),
                     SM(startReStr=r"\s*Debugging\s*is\s*(?:disabled|enabled)\s*"),
-                    SM(name='license', 
+                    SM(name='license',
                        startReStr=r"\s*Gruppe\s*fuer\s*",
-                       coverageIgnore=True, 
-                       adHoc=lambda p: 
-                       self.adHoc_read_store_text_stop_parsing(p, 
+                       coverageIgnore=True,
+                       adHoc=lambda p:
+                       self.adHoc_read_store_text_stop_parsing(p,
                            stopOnMatchStr=r"\s*(?:Bugreports|Running)\s*",
                            quitOnMatchStr=None,
-                           metaNameStart=PARSERTAG+"_", 
-                           metaNameStore=PARSERTAG+"_program_copyright", 
+                           metaNameStart=PARSERTAG+"_",
+                           metaNameStore=PARSERTAG+"_program_copyright",
                            matchNameList=None,
                            matchNameDict=None,
                            onlyCaseSensitive=True,
                            stopOnFirstLine=False,
                            storeFirstLine=True,
                            storeStopQuitLine=True,
-                           onQuitRunFunction=lambda p: p.backend.addValue( 
-                               PARSERTAG+"_program_copyright", 
+                           onQuitRunFunction=lambda p: p.backend.addValue(
+                               PARSERTAG+"_program_copyright",
                                ' '.join(p.lastMatch[
                                    PARSERTAG+"_program_copyright"
                                    ].replace('\n', ' ').strip().split())
                                )
                            )
                        ),
-                    SM(name='loghostinfo', 
+                    SM(name='loghostinfo',
                        startReStr=r"\s*Running\s*on\s*"
                                    "(?P<"+PARSERTAG+"_mdin_finline>.*)\s*",
-                       adHoc=lambda p: p.backend.addValue( 
-                           PARSERTAG+"_build_osarch", 
+                       adHoc=lambda p: p.backend.addValue(
+                           PARSERTAG+"_build_osarch",
                            ' '.join(p.lastMatch[
                                PARSERTAG+"_mdin_finline"
                                ].replace('\n', ' ').strip().split()))),
-                    SM(name='newRun', 
+                    SM(name='newRun',
                        startReStr=r"\s*(?:TITLE|output\s*file)\s*",
                        endReStr=r"\s*(?:TIMING|Overall\s*time\s*used:)\s*",
                        forwardMatch=True,
-                       adHoc=lambda p: 
+                       adHoc=lambda p:
                        self.adHoc_takingover_parsing(p,
                            stopOnMatchStr=r"\s*(?:TIMING|Overall\s*time\s*used:)\s*",
                            quitOnMatchStr=r"\s*(?:TIMING|Overall\s*time\s*used:)\s*",
@@ -2021,7 +2020,7 @@ class GROMOSParser(SmartParser.ParserBase):
                            onlySubParsersReadLine=True,
                            subParsers=outputSubParsers)),
                            #onQuitRunFunction=self.guessInputCmdsFromOutput,
-                           #onQuitRunFunction=lambda p: [ 
+                           #onQuitRunFunction=lambda p: [
                            #    sys.stdout.write(
                            #        "Line %d: %s" % (i, line.replace('GROMOS>', ''))
                            #        ) for i,line in enumerate(self.recordList) if 'GROMOS>' in line
@@ -2032,21 +2031,21 @@ class GROMOSParser(SmartParser.ParserBase):
                        startReStr=r"\s*Overall\s*time\s*used:\s*(?P<time_run_cpu1_end>[0-9:.eEdD]+)"),
                     #SM(name='Walldate',
                     #   startReStr=r"^\(initialisation\s*took\s*",
-                    #   coverageIgnore=True, 
-                    #   adHoc=lambda p: 
-                    #   self.adHoc_read_store_text_stop_parsing(p, 
+                    #   coverageIgnore=True,
+                    #   adHoc=lambda p:
+                    #   self.adHoc_read_store_text_stop_parsing(p,
                     #       stopOnMatchStr=r"^[MTWFS]+.*[0-9]+$",
                     #       quitOnMatchStr=r"^[MTWFS]+.*[0-9]+$",
-                    #       metaNameStart=PARSERTAG+"_", 
-                    #       metaNameStore=PARSERTAG+"_mdin_finline", 
+                    #       metaNameStart=PARSERTAG+"_",
+                    #       metaNameStore=PARSERTAG+"_mdin_finline",
                     #       matchNameList=None,
                     #       matchNameDict=None,
                     #       onlyCaseSensitive=True,
                     #       stopOnFirstLine=False,
                     #       storeFirstLine=True,
                     #       storeStopQuitLine=True,
-                    #       onQuitRunFunction=lambda p: p.backend.addValue( 
-                    #           "time_run_wall_end", 
+                    #       onQuitRunFunction=lambda p: p.backend.addValue(
+                    #           "time_run_wall_end",
                     #           datetime.datetime.strptime(
                     #           ' '.join(p.lastMatch[
                     #               PARSERTAG+"_mdin_finline"
@@ -2055,12 +2054,35 @@ class GROMOSParser(SmartParser.ParserBase):
                     #           )
                     #       )
                     #   ),
-                    SM(name='end_run', 
+                    SM(name='end_run',
                        startReStr=r"\s*MD\+\+\s*finished\s*successfully\s*",
                        adHoc=lambda p: p.backend.addValue("run_clean_end",True)),
                     # END Timings
                 ]) # END MainRun
             ]
+
+
+class GromacsParserInterface():
+   """ A proper class envolop for running this parser from within python. """
+   def __init__(self, backend, **kwargs):
+       self.backend_factory = backend
+
+   def parse(self, mainfile):
+        from unittest.mock import patch
+        logging.info('gromos parser started')
+        logging.getLogger('nomadcore').setLevel(logging.WARNING)
+        backend = self.backend_factory("gromos.nomadmetainfo.json")
+        parserInfo = {'name': 'gromos-parser', 'version': '1.0'}
+        context = GROMOSParser()
+        with patch.object(sys, 'argv', ['<exe>', '--uri', 'nmd://uri', mainfile]):
+            mainFunction(
+                mainFileDescription=context.mainFileDescription(),
+                metaInfoEnv=None,
+                parserInfo=parserInfo,
+                cachingLevelForMetaName=context.cachingLevelForMetaName,
+                superContext=context,
+                superBackend=backend)
+        return backend
 
 
 if __name__ == "__main__":
