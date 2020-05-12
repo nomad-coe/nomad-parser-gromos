@@ -35,6 +35,7 @@ import sys
 import datetime
 import io
 import fnmatch
+from nomadcore.simple_parser import mainFunction
 
 ############################################################
 # This is the parser for the main file of GROMOS.
@@ -2074,6 +2075,7 @@ class GromacsParserInterface():
         backend = self.backend_factory("gromos.nomadmetainfo.json")
         parserInfo = {'name': 'gromos-parser', 'version': '1.0'}
         context = GROMOSParser()
+        context.coverageIgnore = re.compile(r"^(?:" + r"|".join(context.coverageIgnoreList) + r")$")
         with patch.object(sys, 'argv', ['<exe>', '--uri', 'nmd://uri', mainfile]):
             mainFunction(
                 mainFileDescription=context.mainFileDescription(),
