@@ -1,0 +1,7 @@
+codeLabel: GROMOS
+codeLabelStyle: All in capitals
+codeUrl: http://www.gromos.net/
+parserDirName: dependencies/parsers/gromos/
+parserGitUrl: https://gitlab.mpcdf.mpg.de/nomad-lab/parser-gromos
+parserSpecific: ''
+tableOfFiles: ''
