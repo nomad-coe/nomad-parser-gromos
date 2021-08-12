@@ -36,13 +36,13 @@ def test_basic(parser):
 
     parser.parse('tests/data/eq/eq_peptide_1.omd', archive, None)
 
-    sec_run = archive.section_run[0]
-    assert sec_run.program_version == '1.3.1'
+    sec_run = archive.run[0]
+    assert sec_run.program.version == '1.3.1'
 
-    sec_system = archive.section_run[0].section_system[0]
-    assert sec_system.atom_labels[10] == 'N'
-    assert sec_system.atom_positions[37][2].magnitude == approx(-1.0911137e-11)
+    sec_system = archive.run[0].system[0]
+    assert sec_system.atoms.labels[10] == 'N'
+    assert sec_system.atoms.positions[37][2].magnitude == approx(-1.0911137e-11)
 
-    sec_sccs = sec_run.section_single_configuration_calculation
+    sec_sccs = sec_run.calculation
     assert len(sec_sccs) == 100
-    assert sec_sccs[19].energy_total.magnitude == approx(-7.70938473e-17)
+    assert sec_sccs[19].energy.total.value.magnitude == approx(-7.70938473e-17)
